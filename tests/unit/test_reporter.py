@@ -5,11 +5,6 @@ from pytest import fixture, mark
 
 from scanapi.reporter import Reporter
 
-fake_results = [
-    {"response": "foo", "tests_results": [], "no_failure": True},
-    {"response": "bar", "tests_results": [], "no_failure": False},
-]
-
 
 @fixture
 def mock_version(mocker):
@@ -76,7 +71,7 @@ class TestWrite:
         return mocker.patch("scanapi.reporter.webbrowser")
 
     @fixture
-    def context(self, mocked__session):
+    def context(self, mocked__session, fake_results):
         return {
             "now": FakeDatetime(2020, 5, 12, 11, 32, 34),
             "project_name": "",
@@ -98,6 +93,7 @@ class TestWrite:
         mocked__open,
         mocked__session,
         mock_version,
+        fake_results,
         context,
     ):
         mocked__render.return_value = "ScanAPI Report"
@@ -117,6 +113,7 @@ class TestWrite:
         mocked__open,
         mocked__session,
         mock_version,
+        fake_results,
         context,
     ):
         mocked__render.return_value = "ScanAPI Report"
@@ -136,6 +133,7 @@ class TestWrite:
         mocked__open,
         mocked__session,
         mock_version,
+        fake_results,
         context,
     ):
         mocked__render.return_value = "ScanAPI Report"
@@ -157,6 +155,7 @@ class TestWrite:
         mocked__open,
         mocked__session,
         mock_version,
+        fake_results,
         context,
         mocked__webbrowser,
     ):
@@ -169,7 +168,7 @@ class TestWrite:
 @mark.describe("_build_context")
 class TestBuildContext:
     @mark.it("should return context with scanapi version when package found")
-    def test_build_context_with_version(self, mock_version):
+    def test_build_context_with_version(self, mock_version, fake_results):
         results = fake_results
         context = Reporter._build_context(results)
         assert context["scanapi_version"] == "2.0.0"
@@ -181,7 +180,7 @@ class TestBuildContext:
     @mark.it(
         "should return context with 'unknown' scanapi version when package not found"
     )
-    def test_build_context_with_package_not_found(self, mocker):
+    def test_build_context_with_package_not_found(self, mocker, fake_results):
         # Patch version to raise PackageNotFoundError
         def raise_not_found(pkg):
             from importlib.metadata import PackageNotFoundError

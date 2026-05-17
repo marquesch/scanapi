@@ -1,14 +1,12 @@
-import requests
-from pytest import fixture, mark, raises
+from pytest import mark, raises
 
 from scanapi.errors import InvalidKeyError, MissingMandatoryKeyError
-from scanapi.utils import join_urls, session_with_retry, validate_keys
-
-
-@fixture
-def response(requests_mock):
-    requests_mock.get("http://test.com", text="data")
-    return requests.get("http://test.com")
+from scanapi.utils import (
+    flatten_results,
+    join_urls,
+    session_with_retry,
+    validate_keys,
+)
 
 
 @mark.describe("utils")
@@ -123,3 +121,80 @@ class TestSessionWithRetry:
         session = session_with_retry({"max_retries": 7})
 
         assert session._transport._pool._retries == 7
+
+
+@mark.describe("utils")
+@mark.describe("flatten_results")
+class TestFlattenResults:
+    test_data = [
+        (
+            # structured_result
+            {
+                "name": "root",
+                "path": "/root",
+                "request_results": [],
+                "child_endpoints": [
+                    {
+                        "name": "root::user",
+                        "path": "/root/user",
+                        "request_results": [
+                            {
+                                "response": "baz",
+                                "test_results": [],
+                                "no_failure": True,
+                            },
+                        ],
+                        "child_endpoints": [],
+                    },
+                    {
+                        "name": "root::group",
+                        "path": "/root/group",
+                        "request_results": [
+                            {
+                                "response": "quux",
+                                "test_results": [],
+                                "no_failure": False,
+                            }
+                        ],
+                        "child_endpoints": [],
+                    },
+                ],
+            },
+            # flat_result
+            [
+                {"response": "baz", "test_results": [], "no_failure": True},
+                {"response": "quux", "test_results": [], "no_failure": False},
+            ],
+        ),
+        (
+            # structured_result
+            {
+                "name": "root",
+                "path": "/root",
+                "request_results": [
+                    {
+                        "response": "foo",
+                        "tests_results": [],
+                        "no_failure": True,
+                    },
+                    {
+                        "response": "bar",
+                        "tests_results": [],
+                        "no_failure": False,
+                    },
+                ],
+                "child_endpoints": [],
+            },
+            # flat_result
+            [
+                {"response": "foo", "tests_results": [], "no_failure": True},
+                {"response": "bar", "tests_results": [], "no_failure": False},
+            ],
+        ),
+    ]
+
+    @mark.context("results are structured")
+    @mark.it("should flatten all results into one single iterator")
+    @mark.parametrize("structured_result, flat_result", test_data)
+    def test_flatten_results(self, structured_result, flat_result):
+        assert flatten_results(structured_result) == flat_result

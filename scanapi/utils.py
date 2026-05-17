@@ -74,3 +74,7 @@ def session_with_retry(retry_configuration, verify=True):
     return Client(
         transport=HTTPTransport(retries=retries), timeout=None, verify=verify
     )
+
+
+def flatten_results(results):
+    return results

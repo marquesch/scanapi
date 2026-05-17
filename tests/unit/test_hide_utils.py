@@ -1,13 +1,6 @@
-import requests
 from pytest import fixture, mark
 
 from scanapi.hide_utils import _hide, _override_info, hide_sensitive_info
-
-
-@fixture
-def response(requests_mock):
-    requests_mock.get("http://test.com", text="data")
-    return requests.get("http://test.com")
 
 
 @mark.describe("hide utils")

@@ -1,5 +1,4 @@
-import requests
-from pytest import fixture, mark, raises
+from pytest import mark, raises
 
 from scanapi.errors import InvalidPythonCodeError
 from scanapi.evaluators import CodeEvaluator
@@ -8,11 +7,6 @@ from scanapi.evaluators import CodeEvaluator
 @mark.describe("code evaluator")
 @mark.describe("evaluate")
 class TestEvaluate:
-    @fixture
-    def response(self, requests_mock):
-        requests_mock.get("http://test.com", text="abcde")
-        return requests.get("http://test.com")
-
     test_data = ["no code", "${CODE}", "${code}", "{{code}}", 10, []]
 
     @mark.context("when sequence does not match the pattern")
@@ -38,12 +32,12 @@ class TestEvaluate:
         )
 
     test_data = [
-        ("${{response.text == 'abcde'}}", (True, None)),
+        ("${{response.text == 'data'}}", (True, None)),
         (
             "${{response.url == 'http://test.com/'}}",
             (True, None),
         ),
-        ("${{all(x in response.text for x in 'abc')}}", (True, None)),
+        ("${{all(x in response.text for x in 'dat')}}", (True, None)),
         (
             "${{response.status_code == 300}}",
             (False, "response.status_code == 300"),
@@ -99,10 +93,10 @@ class TestEvaluate:
         assert CodeEvaluator.evaluate(sequence, {}) == expected
 
     test_data = [
-        ("${{response.text}}", "abcde"),
+        ("${{response.text}}", "data"),
         ("${{response.status_code}}", "200"),
-        ("${{response.text + 'xpto'}}", "abcdexpto"),
-        ("${{'xpto' + response.text}}", "xptoabcde"),
+        ("${{response.text + 'xpto'}}", "dataxpto"),
+        ("${{'xpto' + response.text}}", "xptodata"),
         ("${{1+1}}", "2"),
     ]
 

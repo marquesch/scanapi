@@ -2,9 +2,8 @@ import errno
 import logging
 import os
 
-import requests
 import yaml
-from pytest import fixture, mark, raises
+from pytest import mark, raises
 
 from scanapi.errors import (
     BadConfigurationError,
@@ -34,12 +33,6 @@ def yaml_error(*args, **kwargs):
 
 def invalid_key(*args, **kwargs):
     raise InvalidKeyError("foo", "endpoint", ["bar", "other"])
-
-
-@fixture
-def response(requests_mock):
-    requests_mock.get("http://test.com", text="data")
-    return requests.get("http://test.com")
 
 
 @mark.describe("scan")
@@ -131,7 +124,7 @@ class TestScan:
         "should call reporter.write, call console.write_summary and exit the session"
     )
     def test_should_call_reporter_write_call_console_write_summary_and_exit(
-        self, mocker, response
+        self, mocker, structured_result
     ):
         mocker.patch(
             "scanapi.scan.settings",
@@ -149,14 +142,14 @@ class TestScan:
         mock_endpoint_init = mocker.patch("scanapi.scan.EndpointNode.__init__")
         mock_endpoint_init.return_value = None
         mock_endpoint_run = mocker.patch("scanapi.scan.EndpointNode.run")
-        mock_endpoint_run.return_value = [response]
+        mock_endpoint_run.return_value = structured_result
         mock_reporter_write = mocker.patch("scanapi.scan.Reporter.write")
         mock_console_write_summary = mocker.patch("scanapi.scan.write_summary")
 
         with raises(SystemExit) as excinfo:
             scan()
 
-        mock_reporter_write.assert_called_once_with([response], False)
+        mock_reporter_write.assert_called_once_with(structured_result, False)
         mock_console_write_summary.assert_called_once_with()
 
         assert excinfo.type == SystemExit
@@ -168,7 +161,9 @@ class TestScan:
         "should call console.write_results, call console.write_summary and exit the session"
     )
     def test_should_call_console_write_results_call_console_write_summary_and_exit(
-        self, mocker, response
+        self,
+        mocker,
+        structured_result,
     ):
         mocker.patch(
             "scanapi.scan.settings",
@@ -186,14 +181,14 @@ class TestScan:
         mock_endpoint_init = mocker.patch("scanapi.scan.EndpointNode.__init__")
         mock_endpoint_init.return_value = None
         mock_endpoint_run = mocker.patch("scanapi.scan.EndpointNode.run")
-        mock_endpoint_run.return_value = [response]
+        mock_endpoint_run.return_value = structured_result
         mock_console_write_results = mocker.patch("scanapi.scan.write_results")
         mock_console_write_summary = mocker.patch("scanapi.scan.write_summary")
 
         with raises(SystemExit) as excinfo:
             scan()
 
-        mock_console_write_results.assert_called_once_with([response])
+        mock_console_write_results.assert_called_once_with(structured_result)
         mock_console_write_summary.assert_called_once_with()
 
         assert excinfo.type == SystemExit
@@ -205,7 +200,7 @@ class TestScan:
         "should call reporter.write passing open_browser as True, call console.write_summary and exit the session"
     )
     def test_should_call_reporter_write_with_open_browser_true_call_console_write_summary_and_exit(
-        self, mocker, response
+        self, mocker, structured_result
     ):
         mocker.patch(
             "scanapi.scan.settings",
@@ -223,25 +218,23 @@ class TestScan:
         mock_endpoint_init = mocker.patch("scanapi.scan.EndpointNode.__init__")
         mock_endpoint_init.return_value = None
         mock_endpoint_run = mocker.patch("scanapi.scan.EndpointNode.run")
-        mock_endpoint_run.return_value = [response]
+        mock_endpoint_run.return_value = structured_result
         mock_reporter_write = mocker.patch("scanapi.scan.Reporter.write")
         mock_console_write_summary = mocker.patch("scanapi.scan.write_summary")
 
         with raises(SystemExit) as excinfo:
             scan()
 
-        mock_reporter_write.assert_called_once_with([response], True)
+        mock_reporter_write.assert_called_once_with(structured_result, True)
         mock_console_write_summary.assert_called_once_with()
 
         assert excinfo.type == SystemExit
         assert excinfo.value.code == 0
 
-    @mark.context(
-        "when _write_report raises BadConfigurationError"
-    )
+    @mark.context("when _write_report raises BadConfigurationError")
     @mark.it("should log an error and exit with usage error")
     def test_should_log_error_and_exit_with_usage_error_when_bad_configuration_error(
-        self, mocker, caplog, response
+        self, mocker, caplog, structured_result
     ):
         mocker.patch(
             "scanapi.scan.settings",
@@ -257,28 +250,29 @@ class TestScan:
         mock_load_config_file = mocker.patch("scanapi.scan.load_config_file")
         mock_load_config_file.return_value = {"endpoints": []}
         mocker.patch("scanapi.scan.EndpointNode.__init__", return_value=None)
-        mocker.patch("scanapi.scan.EndpointNode.run", return_value=[response])
+        mocker.patch(
+            "scanapi.scan.EndpointNode.run", return_value=structured_result
+        )
         mock_write_report = mocker.patch(
             "scanapi.scan._write_report",
             side_effect=BadConfigurationError("bad template"),
         )
 
         caplog.clear()
-        with caplog.at_level(
-            logging.ERROR, logger="scanapi.scan"
-        ), raises(SystemExit) as excinfo:
+        with (
+            caplog.at_level(logging.ERROR, logger="scanapi.scan"),
+            raises(SystemExit) as excinfo,
+        ):
             scan()
 
-        mock_write_report.assert_called_once_with([response], False)
+        mock_write_report.assert_called_once_with(structured_result, False)
         assert excinfo.value.code == ExitCode.USAGE_ERROR
         assert "bad template" in caplog.text
 
-    @mark.context(
-        "when _write_report raises InvalidPythonCodeError"
-    )
+    @mark.context("when _write_report raises InvalidPythonCodeError")
     @mark.it("should log an error and exit with usage error")
     def test_should_log_error_and_exit_with_usage_error_when_invalid_python_code_error(
-        self, mocker, caplog, response
+        self, mocker, caplog, structured_result
     ):
         mocker.patch(
             "scanapi.scan.settings",
@@ -294,20 +288,21 @@ class TestScan:
         mock_load_config_file = mocker.patch("scanapi.scan.load_config_file")
         mock_load_config_file.return_value = {"endpoints": []}
         mocker.patch("scanapi.scan.EndpointNode.__init__", return_value=None)
-        mocker.patch("scanapi.scan.EndpointNode.run", return_value=[response])
+        mocker.patch(
+            "scanapi.scan.EndpointNode.run", return_value=structured_result
+        )
         mock_write_report = mocker.patch(
             "scanapi.scan._write_report",
-            side_effect=InvalidPythonCodeError(
-                "invalid python code", "foo()"
-            ),
+            side_effect=InvalidPythonCodeError("invalid python code", "foo()"),
         )
 
         caplog.clear()
-        with caplog.at_level(
-            logging.ERROR, logger="scanapi.scan"
-        ), raises(SystemExit) as excinfo:
+        with (
+            caplog.at_level(logging.ERROR, logger="scanapi.scan"),
+            raises(SystemExit) as excinfo,
+        ):
             scan()
 
-        mock_write_report.assert_called_once_with([response], False)
+        mock_write_report.assert_called_once_with(structured_result, False)
         assert excinfo.value.code == ExitCode.USAGE_ERROR
         assert "invalid python code" in caplog.text
