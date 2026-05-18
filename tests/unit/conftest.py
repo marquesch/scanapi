@@ -43,7 +43,7 @@ def response(requests_mock):
 
 
 @fixture
-def structured_result(response):
+def endpoint_result(response):
     return {
         "name": "root",
         "path": "/root",

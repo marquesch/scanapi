@@ -128,7 +128,7 @@ class TestSessionWithRetry:
 class TestFlattenResults:
     test_data = [
         (
-            # structured_result
+            # endpoint_result
             {
                 "name": "root",
                 "path": "/root",
@@ -167,7 +167,7 @@ class TestFlattenResults:
             ],
         ),
         (
-            # structured_result
+            # endpoint_result
             {
                 "name": "root",
                 "path": "/root",
@@ -195,6 +195,6 @@ class TestFlattenResults:
 
     @mark.context("results are structured")
     @mark.it("should flatten all results into one single iterator")
-    @mark.parametrize("structured_result, flat_result", test_data)
-    def test_flatten_results(self, structured_result, flat_result):
-        assert flatten_results(structured_result) == flat_result
+    @mark.parametrize("endpoint_result, flat_result", test_data)
+    def test_flatten_results(self, endpoint_result, flat_result):
+        assert flatten_results(endpoint_result) == flat_result
