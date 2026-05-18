@@ -133,7 +133,7 @@ class TestFlattenResults:
                 "name": "root",
                 "path": "/root",
                 "request_results": [],
-                "child_endpoints": [
+                "endpoint_results": [
                     {
                         "name": "root::user",
                         "path": "/root/user",
@@ -144,7 +144,7 @@ class TestFlattenResults:
                                 "no_failure": True,
                             },
                         ],
-                        "child_endpoints": [],
+                        "endpoint_results": [],
                     },
                     {
                         "name": "root::group",
@@ -156,7 +156,7 @@ class TestFlattenResults:
                                 "no_failure": False,
                             }
                         ],
-                        "child_endpoints": [],
+                        "endpoint_results": [],
                     },
                 ],
             },
@@ -183,7 +183,7 @@ class TestFlattenResults:
                         "no_failure": False,
                     },
                 ],
-                "child_endpoints": [],
+                "endpoint_results": [],
             },
             # flat_result
             [

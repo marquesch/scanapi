@@ -22,15 +22,15 @@ class TestRun:
     @mark.context("when there are nested endpoint nodes")
     @mark.it("should return nested endpoint results")
     def test_nested_endpoints(self, mock_run_request, endpoint_node):
-        results = endpoint_node.run()
+        endpoint_results = endpoint_node.run()
 
-        assert "name" in results
-        assert "path" in results
+        assert "name" in endpoint_results
+        assert "path" in endpoint_results
 
-        assert len(list(results["endpoint_results"])) == 2
-        assert len(list(results["request_results"])) == 0
+        assert len(list(endpoint_results["endpoint_results"])) == 2
+        assert len(list(endpoint_results["request_results"])) == 0
 
-        foo_endpoint_result = next(results["endpoint_results"])
+        foo_endpoint_result = next(endpoint_results["endpoint_results"])
 
         assert "name" in foo_endpoint_result
         assert "path" in foo_endpoint_result
@@ -41,13 +41,13 @@ class TestRun:
     @mark.context("when there are no nested endpoints")
     @mark.it("should return no nested endpoint results")
     def test_flat_endpoint(self, mock_run_request, flat_endpoint_node):
-        results = flat_endpoint_node.run()
+        endpoint_results = flat_endpoint_node.run()
 
-        assert "name" in results
-        assert "path" in results
+        assert "name" in endpoint_results
+        assert "path" in endpoint_results
 
-        assert len(list(results["endpoint_results"])) == 0
-        assert len(list(results["request_results"])) == 2
+        assert len(list(endpoint_results["endpoint_results"])) == 0
+        assert len(list(endpoint_results["request_results"])) == 2
 
     @mark.context("when requests are successful")
     @mark.it("should return the responses of the requests")
@@ -56,9 +56,9 @@ class TestRun:
     ):
         mock_run_request.side_effect = ["foo", "bar"]
 
-        results = endpoint_node.run()
+        endpoint_results = endpoint_node.run()
 
-        foo_endpoint_results = next(results["endpoint_results"])
+        foo_endpoint_results = next(endpoint_results["endpoint_results"])
         request_results = list(foo_endpoint_results["request_results"])
 
         assert len(request_results) == 2
@@ -72,8 +72,8 @@ class TestRun:
     ):
         mock_run_request.side_effect = ["foo", HTTPError("error: bar")]
         with caplog.at_level(logging.ERROR):
-            results = endpoint_node.run()
-            foo_endpoint_results = next(results["endpoint_results"])
+            endpoint_results = endpoint_node.run()
+            foo_endpoint_results = next(endpoint_results["endpoint_results"])
             request_results = list(foo_endpoint_results["request_results"])
 
         assert len(request_results) == 1

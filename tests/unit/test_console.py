@@ -26,14 +26,14 @@ class TestWriteResults:
     @mark.context("when results is empty")
     @mark.it("should not call write_result")
     def test_should_not_call(self, mocked__write_result):
-        write_results({"request_results": [], "child_endpoints": []})
+        write_results({"request_results": [], "endpoint_results": []})
 
         assert not mocked__write_result.called
 
     @mark.context("when results has size 3")
     @mark.it("should call write_result 3 times")
     def test_should_call_3_times(self, mocked__write_result):
-        write_results({"request_results": [1, 2, 3], "child_endpoints": []})
+        write_results({"request_results": [1, 2, 3], "endpoint_results": []})
 
         assert mocked__write_result.call_count == 3
 
