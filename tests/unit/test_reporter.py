@@ -172,7 +172,8 @@ class TestBuildContext:
         results = fake_results
         context = Reporter._build_context(results)
         assert context["scanapi_version"] == "2.0.0"
-        assert context["results"] == results
+        assert context["endpoint_results"] == results
+        assert "results" in context
         assert "now" in context
         assert "project_name" in context
         assert "session" in context
@@ -194,7 +195,8 @@ class TestBuildContext:
         results = fake_results
         context = Reporter._build_context(results)
         assert context["scanapi_version"] == "unknown"
-        assert context["results"] == results
+        assert context["endpoint_results"] == results
+        assert "results" in context
         assert "now" in context
         assert "project_name" in context
         assert "session" in context
