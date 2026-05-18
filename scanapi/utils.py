@@ -73,9 +73,7 @@ def session_with_retry(retry_configuration, verify=True):
     retry_configuration = retry_configuration or {}
     retries = retry_configuration.get(MAX_RETRIES_KEY, 0)
 
-    return Client(
-        transport=HTTPTransport(retries=retries), timeout=None, verify=verify
-    )
+    return Client(transport=HTTPTransport(retries=retries), timeout=None, verify=verify)
 
 
 def flatten_endpoint_results(endpoint_results):
@@ -91,7 +89,9 @@ def flatten_endpoint_results(endpoint_results):
     return chain(
         endpoint_results["request_results"],
         (
-            flatten_endpoint_results(er)
-            for er in endpoint_results["endpoint_results"]
+            chain.from_iterable(
+                flatten_endpoint_results(er)
+                for er in endpoint_results["endpoint_results"]
+            )
         ),
     )

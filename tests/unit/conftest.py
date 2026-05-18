@@ -37,6 +37,16 @@ def fake_results():
 
 
 @fixture
+def flat_fake_results():
+    return [
+        {"response": "foo", "tests_results": [], "no_failure": True},
+        {"response": "bar", "tests_results": [], "no_failure": False},
+        {"response": "baz", "test_results": [], "no_failure": True},
+        {"response": "quux", "test_results": [], "no_failure": False},
+    ]
+
+
+@fixture
 def response(requests_mock):
     requests_mock.get("http://test.com", text="data")
     return requests.get("http://test.com")

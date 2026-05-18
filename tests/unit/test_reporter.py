@@ -4,7 +4,6 @@ from freezegun.api import FakeDatetime
 from pytest import fixture, mark
 
 from scanapi.reporter import Reporter
-from scanapi.utils import flatten_endpoint_results
 
 
 @fixture
@@ -72,12 +71,18 @@ class TestWrite:
         return mocker.patch("scanapi.reporter.webbrowser")
 
     @fixture
-    def context(self, mocked__session, fake_results):
+    def mocked__flatten_endpoint_results(self, mocker, flat_fake_results):
+        mock = mocker.patch("scanapi.utils.flatten_endpoint_results")
+        mock.return_value = flat_fake_results
+        return mock
+
+    @fixture
+    def context(self, mocked__session, fake_results, flat_fake_results):
         return {
             "now": FakeDatetime(2020, 5, 12, 11, 32, 34),
             "project_name": "",
             "endpoint_results": fake_results,
-            "results": flatten_endpoint_results(fake_results),
+            "results": flat_fake_results,
             "session": mocked__session,
             "scanapi_version": "2.0.0",
         }
@@ -94,6 +99,7 @@ class TestWrite:
         mocked__render,
         mocked__open,
         mocked__session,
+        mocked__flatten_endpoint_results,
         mock_version,
         fake_results,
         context,
@@ -114,6 +120,7 @@ class TestWrite:
         mocked__render,
         mocked__open,
         mocked__session,
+        mocked__flatten_endpoint_results,
         mock_version,
         fake_results,
         context,
@@ -134,6 +141,7 @@ class TestWrite:
         mocked__render,
         mocked__open,
         mocked__session,
+        mocked__flatten_endpoint_results,
         mock_version,
         fake_results,
         context,
@@ -156,6 +164,7 @@ class TestWrite:
         mocked__render,
         mocked__open,
         mocked__session,
+        mocked__flatten_endpoint_results,
         mock_version,
         fake_results,
         context,
