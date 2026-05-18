@@ -2,7 +2,7 @@ from pytest import mark, raises
 
 from scanapi.errors import InvalidKeyError, MissingMandatoryKeyError
 from scanapi.utils import (
-    flatten_results,
+    flatten_endpoint_results,
     join_urls,
     session_with_retry,
     validate_keys,
@@ -197,4 +197,7 @@ class TestFlattenResults:
     @mark.it("should flatten all results into one single iterator")
     @mark.parametrize("endpoint_result, flat_result", test_data)
     def test_flatten_results(self, endpoint_result, flat_result):
-        assert flatten_results(endpoint_result) == flat_result
+        flattened_endpoint_results = [
+            o for o in flatten_endpoint_results(endpoint_result)
+        ]
+        assert list(flattened_endpoint_results) == flat_result

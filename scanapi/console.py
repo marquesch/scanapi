@@ -6,14 +6,17 @@ from scanapi.test_status import TestStatus
 console = Console()
 
 
-def write_results(results):
+def write_results(endpoint_results):
     """Print the test results to the console output
 
     Returns:
         None
     """
-    for r in results:
-        write_result(r)
+    for rr in endpoint_results["request_results"]:
+        write_result(rr)
+
+    for er in endpoint_results["endpoint_results"]:
+        write_results(er)
 
 
 def write_result(result):

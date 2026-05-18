@@ -1,3 +1,5 @@
+from itertools import chain
+
 from httpx import Client, HTTPTransport
 
 from scanapi.errors import InvalidKeyError, MissingMandatoryKeyError
@@ -76,5 +78,20 @@ def session_with_retry(retry_configuration, verify=True):
     )
 
 
-def flatten_results(results):
-    return results
+def flatten_endpoint_results(endpoint_results):
+    """Flattens endpoint results into a flat requests results
+
+    Args:
+        endpoint_results [dict]: the results of running an endpoint
+
+    Returns:
+        [Iterator]: An iterator with the results of all requests from the
+        endpoint and its child nodes
+    """
+    return chain(
+        endpoint_results["request_results"],
+        (
+            flatten_endpoint_results(er)
+            for er in endpoint_results["endpoint_results"]
+        ),
+    )

@@ -58,7 +58,7 @@ def scan():
     session.exit()
 
 
-def _write(results):
+def _write(endpoint_results):
     """When the user passed the `--no-report` flag: prints the test results to
     the console output.
     When the user did not pass the `--no_report flag`: writes the results on a
@@ -71,17 +71,17 @@ def _write(results):
     open_browser = settings["open_browser"]
 
     if no_report:
-        write_results(results)
+        write_results(endpoint_results)
         return
 
     try:
-        _write_report(results, open_browser)
+        _write_report(endpoint_results, open_browser)
     except (BadConfigurationError, InvalidPythonCodeError) as e:
         logger.error(e)
         raise SystemExit(ExitCode.USAGE_ERROR)
 
 
-def _write_report(results, open_browser):
+def _write_report(endpoint_results, open_browser):
     """Constructs a Reporter object and calls the write method of Reporter to
     push the results to a file.
 
@@ -89,4 +89,4 @@ def _write_report(results, open_browser):
         None
     """
     reporter = Reporter(settings["output_path"], settings["template"])
-    reporter.write(results, open_browser)
+    reporter.write(endpoint_results, open_browser)

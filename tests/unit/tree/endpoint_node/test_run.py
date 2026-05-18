@@ -27,10 +27,12 @@ class TestRun:
         assert "name" in endpoint_results
         assert "path" in endpoint_results
 
-        assert len(list(endpoint_results["endpoint_results"])) == 2
         assert len(list(endpoint_results["request_results"])) == 0
 
-        foo_endpoint_result = next(endpoint_results["endpoint_results"])
+        nested_endpoint_results = list(endpoint_results["endpoint_results"])
+        assert len(nested_endpoint_results) == 1
+
+        foo_endpoint_result = nested_endpoint_results[0]
 
         assert "name" in foo_endpoint_result
         assert "path" in foo_endpoint_result
@@ -63,7 +65,7 @@ class TestRun:
 
         assert len(request_results) == 2
 
-        assert request_results == ["foo", "barr"]
+        assert request_results == ["foo", "bar"]
 
     @mark.context("when there is an error during a request")
     @mark.it("should log the error and change session exit code")

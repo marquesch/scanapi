@@ -1,6 +1,5 @@
 import copy
 import logging
-from itertools import chain
 from typing import Any, Dict, Optional
 
 from httpx import CookieConflict, HTTPError, InvalidURL, StreamError
@@ -207,8 +206,8 @@ class EndpointNode:
 
         return variables
 
-    def run(self):
-        """Run the requests of the node and all children nodes.
+    def _run_requests(self):
+        """Runs requests lazily and returns their results.
 
         Returns:
             [iterator]: Iterator that yields the test result of each request.
@@ -224,6 +223,23 @@ class EndpointNode:
                 logger.error(error_message)
                 session.exit_code = ExitCode.REQUEST_ERROR
                 continue
+
+    def run(self):
+        """Runs endpoint requests lazily and runs child endpoints
+
+        Returns:
+            [dict]: dict representing endpoint results
+                - name [str]: name of the endpoint
+                - path [str]: path to the endpoint
+                - endpoint_results [Iterator]: the results of all endpoints
+                - request_results [Iterator]: the results of all requests
+        """
+        return {
+            "name": self.name,
+            "path": self.path,
+            "endpoint_results": (child.run() for child in self.child_nodes),
+            "request_results": self._run_requests(),
+        }
 
     def _validate(self):
         """Private method that checks if the specification has any invalid key
@@ -254,16 +270,11 @@ class EndpointNode:
         return values
 
     def _get_requests(self):
-        """Get all requests from the node and children nodes as RequestNodes.
+        """Get all requests from the node.
 
         Returns:
-            [iterator]: Iterator that yields a RequestNode for
-            each request.
+            [iterator]: Iterator that yields a RequestNode for each request.
         """
-        return chain(
-            (
-                RequestNode(spec, self)
-                for spec in self.spec.get(REQUESTS_KEY, [])
-            ),
-            *(child._get_requests() for child in self.child_nodes),
+        return (
+            RequestNode(spec, self) for spec in self.spec.get(REQUESTS_KEY, [])
         )

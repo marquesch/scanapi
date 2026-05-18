@@ -32,12 +32,7 @@ def endpoint_node():
 def flat_endpoint_node():
     return EndpointNode(
         {
-            "endpoints": [
-                {
-                    "name": "foo",
-                    "requests": [],
-                }
-            ],
+            "endpoints": [],
             "name": "node",
             "requests": [
                 {

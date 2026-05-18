@@ -4,6 +4,7 @@ from freezegun.api import FakeDatetime
 from pytest import fixture, mark
 
 from scanapi.reporter import Reporter
+from scanapi.utils import flatten_endpoint_results
 
 
 @fixture
@@ -75,7 +76,8 @@ class TestWrite:
         return {
             "now": FakeDatetime(2020, 5, 12, 11, 32, 34),
             "project_name": "",
-            "results": fake_results,
+            "endpoint_results": fake_results,
+            "results": flatten_endpoint_results(fake_results),
             "session": mocked__session,
             "scanapi_version": "2.0.0",
         }
